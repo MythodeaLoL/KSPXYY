@@ -1,17 +1,34 @@
 package com.sth.kspxyy;
 
 import android.app.Activity;
+import android.database.DataSetObserver;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+import com.sth.kspxyy.subtitle.Caption;
+import com.sth.kspxyy.subtitle.FormatASS;
+import com.sth.kspxyy.subtitle.TimedTextObject;
 import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.MediaPlayer.OnBufferingUpdateListener;
 import io.vov.vitamio.MediaPlayer.OnCompletionListener;
 import io.vov.vitamio.MediaPlayer.OnPreparedListener;
 import io.vov.vitamio.MediaPlayer.OnVideoSizeChangedListener;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdateListener, OnCompletionListener, OnPreparedListener, OnVideoSizeChangedListener, SurfaceHolder.Callback {
 
@@ -23,6 +40,7 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     private String path;
     private boolean mIsVideoSizeKnown = false;
     private boolean mIsVideoReadyToBePlayed = false;
+    private ListView subTitleListView;
 
     /**
      * Called when the activity is first created.
@@ -34,6 +52,7 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
             return;
         setContentView(R.layout.main);
         mPreview = (SurfaceView) findViewById(R.id.surface);
+        subTitleListView = (ListView) findViewById(R.id.subtitle_list);
         holder = mPreview.getHolder();
         holder.addCallback(this);
     }
@@ -41,9 +60,8 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     private void playVideo() {
         doCleanUp();
 
-        path = "/storage/sdcard0/Download/Vegas.mkv";
+        path = Environment.getExternalStorageDirectory() + "/Download/Vegas.mkv";
         try {
-
             // Create a new media player and set the listeners
             mMediaPlayer = new MediaPlayer(this);
             mMediaPlayer.setDataSource(path);
@@ -58,11 +76,24 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
         } catch (Exception e) {
             Log.e("", "error: " + e.getMessage(), e);
         }
+
+        try {
+            loadSubtitle();
+        } catch (IOException e) {
+            Toast.makeText(this, "Failed to load subtitle.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void loadSubtitle() throws IOException {
+        FormatASS formatASS = new FormatASS();
+        File dir = Environment.getExternalStorageDirectory();
+
+        TimedTextObject vegas = formatASS.parseFile("Vegas", new FileInputStream(dir.getPath() + "/Download/Vegas.ass"));
+        subTitleListView.setAdapter(new SubtitleAdapter(vegas.captions));
     }
 
     public void onBufferingUpdate(MediaPlayer arg0, int percent) {
         Log.d("", "onBufferingUpdate percent:" + percent);
-
     }
 
     public void onCompletion(MediaPlayer arg0) {
@@ -93,7 +124,6 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
 
     public void surfaceChanged(SurfaceHolder surfaceholder, int i, int j, int k) {
         Log.d("", "surfaceChanged called");
-
     }
 
     public void surfaceDestroyed(SurfaceHolder surfaceholder) {
@@ -103,7 +133,6 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d("", "surfaceCreated called");
         playVideo();
-
     }
 
     @Override
@@ -138,5 +167,78 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
         Log.v("", "startVideoPlayback");
         holder.setFixedSize(mVideoWidth, mVideoHeight);
         mMediaPlayer.start();
+    }
+
+    private class SubtitleAdapter implements ListAdapter {
+        private ArrayList<Caption> captions;
+
+        private SubtitleAdapter(TreeMap<Integer, Caption> captions) {
+            this.captions = new ArrayList<Caption>(captions.values());
+        }
+
+        @Override
+        public boolean areAllItemsEnabled() {
+            return true;
+        }
+
+        @Override
+        public boolean isEnabled(int position) {
+            return true;
+        }
+
+        @Override
+        public void registerDataSetObserver(DataSetObserver observer) {
+
+        }
+
+        @Override
+        public void unregisterDataSetObserver(DataSetObserver observer) {
+
+        }
+
+        @Override
+        public int getCount() {
+            return captions.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return captions.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = new TextView(MediaPlayerDemo_Video.this);
+            }
+
+            ((TextView) convertView).setText(captions.get(position).content);
+            return convertView;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return 0;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return 1;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
     }
 }
