@@ -44,9 +44,9 @@ public class Time {
     }
 
     // in an integer we can store 24 days worth of milliseconds, no need for a long
-    protected int mseconds;
+    public int mseconds;
 
-    protected String getTime(String format) {
+    public String getTime(String format) {
         //we use string builder for efficiency
         StringBuilder time = new StringBuilder();
         String aux;

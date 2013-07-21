@@ -10,10 +10,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
+import com.sth.kspxyy.components.SubTitleTextView;
 import com.sth.kspxyy.subtitle.Caption;
 import com.sth.kspxyy.subtitle.FormatASS;
 import com.sth.kspxyy.subtitle.TimedTextObject;
@@ -80,6 +78,14 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
         } catch (IOException e) {
             Toast.makeText(this, "Failed to load subtitle.", Toast.LENGTH_LONG).show();
         }
+
+        subTitleListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Caption caption = ((SubTitleTextView) view).getCaption();
+                mMediaPlayer.seekTo(caption.start.mseconds);
+            }
+        });
     }
 
     private void loadSubtitle() throws IOException {
@@ -227,10 +233,10 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
-                convertView = new TextView(MediaPlayerDemo_Video.this);
+                convertView = new SubTitleTextView(MediaPlayerDemo_Video.this);
             }
 
-            ((TextView) convertView).setText(captions.get(position).content);
+            ((SubTitleTextView) convertView).setCaption(captions.get(position));
             return convertView;
         }
 
