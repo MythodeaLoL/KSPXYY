@@ -301,7 +301,6 @@ public class FormatASS implements TimedTextFileFormat {
      * @return a new Caption object
      */
     private Caption parseDialogueForASS(String[] line, String[] dialogueFormat, float timer, TimedTextObject tto) {
-
         Caption newCaption = new Caption();
 
         //all information from fields 10 onwards are the caption text therefore needn't be split
@@ -333,119 +332,5 @@ public class FormatASS implements TimedTextFileFormat {
             newCaption.end.mseconds /= (timer / 100);
         }
         return newCaption;
-    }
-
-    /**
-     * returns a string with the correctly formated colors
-     *
-     * @param useASSInsteadOfSSA true if formated for ASS
-     * @return the colors in the decimal format
-     */
-    private String getColorsForASS(boolean useASSInsteadOfSSA, Style style) {
-        String colors;
-        if (useASSInsteadOfSSA)
-            //primary color(BBGGRR) with Alpha level (00) in front + 00FFFFFF + 00000000 + background color(BBGGRR) with Alpha level (80) in front
-            colors = Integer.parseInt("00" + style.color.substring(4, 6) + style.color.substring(2, 4) + style.color.substring(0, 2), 16) + ",16777215,0," + Long.parseLong("80" + style.backgroundColor.substring(4, 6) + style.backgroundColor.substring(2, 4) + style.backgroundColor.substring(0, 2), 16) + ",";
-        else {
-            //primary color(BBGGRR) + FFFFFF + 000000 + background color(BBGGRR)
-            String color = style.color.substring(4, 6) + style.color.substring(2, 4) + style.color.substring(0, 2);
-            String bgcolor = style.backgroundColor.substring(4, 6) + style.backgroundColor.substring(2, 4) + style.backgroundColor.substring(0, 2);
-            colors = Long.parseLong(color, 16) + ",16777215,0," + Long.parseLong(bgcolor, 16) + ",";
-        }
-        return colors;
-    }
-
-    /**
-     * returns a string with the correctly formated options
-     *
-     * @param useASSInsteadOfSSA
-     * @return
-     */
-    private String getOptionsForASS(boolean useASSInsteadOfSSA, Style style) {
-        String options;
-        if (style.bold)
-            options = "-1,";
-        else
-            options = "0,";
-        if (style.italic)
-            options += "-1,";
-        else
-            options += "0,";
-        if (useASSInsteadOfSSA) {
-            if (style.underline)
-                options += "-1,";
-            else
-                options += "0,";
-            options += "0,100,100,0,0,";
-        }
-        return options;
-    }
-
-    /**
-     * converts the string explaining the alignment into the ASS equivalent integer offering bottom-center as default value
-     *
-     * @param useASSInsteadOfSSA
-     * @param align
-     * @return
-     */
-    private int getAlignForASS(boolean useASSInsteadOfSSA, String align) {
-        if (useASSInsteadOfSSA) {
-            int placement = 2;
-            if ("bottom-left".equals(align))
-                placement = 1;
-            else if ("bottom-center".equals(align))
-                placement = 2;
-            else if ("bottom-right".equals(align))
-                placement = 3;
-            else if ("mid-left".equals(align))
-                placement = 4;
-            else if ("mid-center".equals(align))
-                placement = 5;
-            else if ("mid-right".equals(align))
-                placement = 6;
-            else if ("top-left".equals(align))
-                placement = 7;
-            else if ("top-center".equals(align))
-                placement = 8;
-            else if ("top-right".equals(align))
-                placement = 9;
-
-            return placement;
-        } else {
-
-            int placement = 10;
-            if ("bottom-left".equals(align))
-                placement = 9;
-            else if ("bottom-center".equals(align))
-                placement = 10;
-            else if ("bottom-right".equals(align))
-                placement = 11;
-            else if ("mid-left".equals(align))
-                placement = 1;
-            else if ("mid-center".equals(align))
-                placement = 2;
-            else if ("mid-right".equals(align))
-                placement = 3;
-            else if ("top-left".equals(align))
-                placement = 5;
-            else if ("top-center".equals(align))
-                placement = 6;
-            else if ("top-right".equals(align))
-                placement = 7;
-
-            return placement;
-        }
-    }
-
-    public static void main(String[] args) throws IOException {
-        FormatASS formatASS = new FormatASS();
-
-        InputStream is = FormatASS.class.getClassLoader().getResourceAsStream("/Vegas.ass");
-        TimedTextObject timedTextObject = formatASS.parseFile("Vegas.ass", is);
-
-        System.out.println(timedTextObject.captions.get(0).content);
-        System.out.println(timedTextObject.captions.get(1).content);
-        System.out.println(timedTextObject.captions.get(2).content);
-        System.out.println(timedTextObject.captions.get(3).content);
     }
 }

@@ -47,7 +47,10 @@ public class Style {
     protected boolean bold;
     protected boolean underline;
 
-	/* METHODS */
+    public String getLanguage() {
+        return iD;
+    }
+/* METHODS */
 
     /**
      * To get the string containing the hex value to put into color or background color

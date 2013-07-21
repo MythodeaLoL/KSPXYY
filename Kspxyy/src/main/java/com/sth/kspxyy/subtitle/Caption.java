@@ -8,5 +8,4 @@ public class Caption {
     public Time end;
 
     public String content = "";
-
 }

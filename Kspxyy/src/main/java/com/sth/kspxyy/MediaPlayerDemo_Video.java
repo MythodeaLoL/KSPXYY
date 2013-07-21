@@ -89,7 +89,17 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
         File dir = Environment.getExternalStorageDirectory();
 
         TimedTextObject vegas = formatASS.parseFile("Vegas", new FileInputStream(dir.getPath() + "/Download/Vegas.ass"));
-        subTitleListView.setAdapter(new SubtitleAdapter(vegas.captions));
+        subTitleListView.setAdapter(new SubtitleAdapter(filterByLanguage(vegas.captions, "eng")));
+    }
+
+    private ArrayList<Caption> filterByLanguage(TreeMap<Integer, Caption> captions, String language) {
+        ArrayList<Caption> results = new ArrayList<Caption>();
+        for (Caption caption : captions.values()) {
+            if (caption.style.getLanguage().equalsIgnoreCase(language)) {
+                results.add(caption);
+            }
+        }
+        return results;
     }
 
     public void onBufferingUpdate(MediaPlayer arg0, int percent) {
@@ -172,8 +182,8 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     private class SubtitleAdapter implements ListAdapter {
         private ArrayList<Caption> captions;
 
-        private SubtitleAdapter(TreeMap<Integer, Caption> captions) {
-            this.captions = new ArrayList<Caption>(captions.values());
+        private SubtitleAdapter(ArrayList<Caption> captions) {
+            this.captions = captions;
         }
 
         @Override
