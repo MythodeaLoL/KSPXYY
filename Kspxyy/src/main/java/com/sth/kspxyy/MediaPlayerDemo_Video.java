@@ -42,14 +42,12 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     private boolean mIsVideoReadyToBePlayed = false;
     private ListView subTitleListView;
 
-    /**
-     * Called when the activity is first created.
-     */
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        if (!LibsChecker.checkVitamioLibs(this))
+        if (!LibsChecker.checkVitamioLibs(this)) {
             return;
+        }
         setContentView(R.layout.main);
         mPreview = (SurfaceView) findViewById(R.id.surface);
         subTitleListView = (ListView) findViewById(R.id.subtitle_list);

@@ -1,1 +1,1 @@
-include ':Kspxyy', ":modules:VitamioBundle"
+include ':Kspxyy', ":modules:VitamioBundle", ":modules:SubTitle"
