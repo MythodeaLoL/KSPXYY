@@ -3,6 +3,7 @@ package com.sth.kspxyy;
 import android.app.Activity;
 import android.database.DataSetObserver;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -10,17 +11,14 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 import com.sth.kspxyy.components.SubTitleTextView;
 import com.sth.kspxyy.subtitle.Caption;
-import com.sth.kspxyy.subtitle.FormatASS;
+import com.sth.kspxyy.subtitle.FormatSRT;
 import com.sth.kspxyy.subtitle.TimedTextObject;
-import io.vov.vitamio.LibsChecker;
-import io.vov.vitamio.MediaPlayer;
-import io.vov.vitamio.MediaPlayer.OnBufferingUpdateListener;
-import io.vov.vitamio.MediaPlayer.OnCompletionListener;
-import io.vov.vitamio.MediaPlayer.OnPreparedListener;
-import io.vov.vitamio.MediaPlayer.OnVideoSizeChangedListener;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdateListener, OnCompletionListener, OnPreparedListener, OnVideoSizeChangedListener, SurfaceHolder.Callback {
+public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnVideoSizeChangedListener, SurfaceHolder.Callback {
 
     private int mVideoWidth;
     private int mVideoHeight;
@@ -43,9 +41,7 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        if (!LibsChecker.checkVitamioLibs(this)) {
-            return;
-        }
+
         setContentView(R.layout.main);
         mPreview = (SurfaceView) findViewById(R.id.surface);
         subTitleListView = (ListView) findViewById(R.id.subtitle_list);
@@ -56,10 +52,10 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     private void playVideo() {
         doCleanUp();
 
-        path = Environment.getExternalStorageDirectory() + "/Download/Vegas.mkv";
+        path = Environment.getExternalStorageDirectory() + "/Download/The.Big.Bang.Theory.S06E24.HDTV.x264-LOL.mp4";
         try {
             // Create a new media player and set the listeners
-            mMediaPlayer = new MediaPlayer(this);
+            mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setDataSource(path);
             mMediaPlayer.setDisplay(holder);
             mMediaPlayer.prepare();
@@ -67,6 +63,7 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnVideoSizeChangedListener(this);
+            mMediaPlayer.se
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         } catch (Exception e) {
@@ -89,19 +86,17 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
     }
 
     private void loadSubtitle() throws IOException {
-        FormatASS formatASS = new FormatASS();
+        FormatSRT formatSRT = new FormatSRT();
         File dir = Environment.getExternalStorageDirectory();
 
-        TimedTextObject vegas = formatASS.parseFile("Vegas", new FileInputStream(dir.getPath() + "/Download/Vegas.ass"));
+        TimedTextObject vegas = formatSRT.parseFile("Vegas", new FileInputStream(dir.getPath() + "/Download/The.Big.Bang.Theory.S06E24.HDTV.x264-LOL.srt"));
         subTitleListView.setAdapter(new SubtitleAdapter(filterByLanguage(vegas.captions, "eng")));
     }
 
     private ArrayList<Caption> filterByLanguage(TreeMap<Integer, Caption> captions, String language) {
         ArrayList<Caption> results = new ArrayList<Caption>();
         for (Caption caption : captions.values()) {
-            if (caption.style.getLanguage().equalsIgnoreCase(language)) {
-                results.add(caption);
-            }
+            results.add(caption);
         }
         return results;
     }
@@ -233,7 +228,7 @@ public class MediaPlayerDemo_Video extends Activity implements OnBufferingUpdate
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
-                convertView = new SubTitleTextView(MediaPlayerDemo_Video.this);
+                convertView = new SubTitleTextView(MediaPlayerActivity.this);
             }
 
             ((SubTitleTextView) convertView).setCaption(captions.get(position));
