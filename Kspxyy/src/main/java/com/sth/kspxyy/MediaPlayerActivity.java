@@ -7,14 +7,8 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 import com.sth.kspxyy.components.SubTitleTextView;
 import com.sth.kspxyy.subtitle.Caption;
 import com.sth.kspxyy.subtitle.FormatSRT;
@@ -26,7 +20,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnVideoSizeChangedListener, SurfaceHolder.Callback {
+public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnVideoSizeChangedListener, SurfaceHolder.Callback
+        , MediaController.MediaPlayerControl {
 
     private int mVideoWidth;
     private int mVideoHeight;
@@ -38,6 +33,8 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
     private boolean mIsVideoReadyToBePlayed = false;
     private ListView subTitleListView;
 
+    private MediaController mMediaController;
+
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -47,12 +44,29 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
         subTitleListView = (ListView) findViewById(R.id.subtitle_list);
         holder = mPreview.getHolder();
         holder.addCallback(this);
+
+        mMediaController = new MediaController(this);
+
+        mPreview.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (mMediaController.isShowing()) {
+                    mMediaController.hide();
+                } else {
+                    mMediaController.show();
+                }
+                return false;
+            }
+        });
+
+
     }
 
     private void playVideo() {
         doCleanUp();
 
         path = Environment.getExternalStorageDirectory() + "/Download/The.Big.Bang.Theory.S06E24.HDTV.x264-LOL.mp4";
+
         try {
             // Create a new media player and set the listeners
             mMediaPlayer = new MediaPlayer();
@@ -64,7 +78,6 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnVideoSizeChangedListener(this);
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
         } catch (Exception e) {
             Log.e("", "error: " + e.getMessage(), e);
         }
@@ -128,6 +141,10 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
         if (mIsVideoReadyToBePlayed && mIsVideoSizeKnown) {
             startVideoPlayback();
         }
+        mMediaController.setMediaPlayer(this);
+        mMediaController.setAnchorView(mPreview);
+        mMediaController.setEnabled(true);
+        mMediaController.show();
     }
 
     public void surfaceChanged(SurfaceHolder surfaceholder, int i, int j, int k) {
@@ -175,6 +192,56 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
         Log.v("", "startVideoPlayback");
         holder.setFixedSize(mVideoWidth, mVideoHeight);
         mMediaPlayer.start();
+    }
+
+    @Override
+    public void start() {
+        mMediaPlayer.start();
+    }
+
+    @Override
+    public void pause() {
+        mMediaPlayer.pause();
+    }
+
+    @Override
+    public int getDuration() {
+        return mMediaPlayer.getDuration();
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return mMediaPlayer.getCurrentPosition();
+    }
+
+    @Override
+    public void seekTo(int pos) {
+        mMediaPlayer.seekTo(pos);
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mMediaPlayer.isPlaying();
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
     }
 
     private class SubtitleAdapter implements ListAdapter {
