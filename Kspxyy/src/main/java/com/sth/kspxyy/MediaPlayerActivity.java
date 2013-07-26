@@ -63,7 +63,6 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnVideoSizeChangedListener(this);
-            mMediaPlayer.se
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         } catch (Exception e) {
