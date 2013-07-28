@@ -11,7 +11,6 @@ public class TimedTextObject {
     public String copyrigth = "";
     public String author = "";
     public String fileName = "";
-    public String language = "";
 
     //list of styles (id, reference)
     public Hashtable<String, Style> styling;
@@ -26,12 +25,6 @@ public class TimedTextObject {
     //to store non fatal errors produced during parsing
     public String warnings;
 
-    //**** OPTIONS *****
-    //to know whether file should be saved as .ASS or .SSA
-    public boolean useASSInsteadOfSSA = true;
-    //to delay or advance the subtitles, parsed into +/- milliseconds
-    public int offset = 0;
-
     //to know if a parsing method has been applied
     public boolean built = false;
 
@@ -40,13 +33,9 @@ public class TimedTextObject {
      * Protected constructor so it can't be created from outside
      */
     public TimedTextObject() {
-
         styling = new Hashtable<String, Style>();
         layout = new Hashtable<String, Region>();
         captions = new TreeMap<Integer, Caption>();
-
-        warnings = "List of non fatal errors produced during parsing:\n\n";
-
     }
 
     /**
@@ -74,4 +63,21 @@ public class TimedTextObject {
         this.styling = usedStyles;
     }
 
+    public int getNextLineIndex(int currentPosition) {
+        Iterator<Caption> iterator = captions.values().iterator();
+        int index = 0;
+        while (iterator.hasNext()) {
+            Caption current = iterator.next();
+            index++;
+            if (currentPosition > current.start.mseconds && currentPosition < current.end.mseconds) {
+                return index;
+            }
+        }
+        return index;
+    }
+
+
+    public long getFirstLineStartTime() {
+        return captions.firstKey();
+    }
 }

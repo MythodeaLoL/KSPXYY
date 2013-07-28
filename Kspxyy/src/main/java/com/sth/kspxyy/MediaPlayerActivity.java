@@ -1,24 +1,20 @@
 package com.sth.kspxyy;
 
 import android.app.Activity;
-import android.database.DataSetObserver;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.*;
-import android.widget.*;
+import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.MediaController;
 import com.sth.kspxyy.components.SubTitleTextView;
+import com.sth.kspxyy.components.SubtitleView;
 import com.sth.kspxyy.subtitle.Caption;
-import com.sth.kspxyy.subtitle.FormatSRT;
-import com.sth.kspxyy.subtitle.TimedTextObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.TreeMap;
 
 public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnVideoSizeChangedListener, SurfaceHolder.Callback
         , MediaController.MediaPlayerControl {
@@ -31,7 +27,8 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
     private String path;
     private boolean mIsVideoSizeKnown = false;
     private boolean mIsVideoReadyToBePlayed = false;
-    private ListView subTitleListView;
+
+    private SubtitleView subtitleView;
 
     private MediaController mMediaController;
 
@@ -41,7 +38,7 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
 
         setContentView(R.layout.main);
         mPreview = (SurfaceView) findViewById(R.id.surface);
-        subTitleListView = (ListView) findViewById(R.id.subtitle_list);
+        subtitleView = (SubtitleView) findViewById(R.id.subtitle_list);
         holder = mPreview.getHolder();
         holder.addCallback(this);
 
@@ -58,14 +55,14 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
                 return false;
             }
         });
-
-
     }
 
     private void playVideo() {
         doCleanUp();
 
         path = Environment.getExternalStorageDirectory() + "/Download/The.Big.Bang.Theory.S06E24.HDTV.x264-LOL.mp4";
+
+        subtitleView.loadSubtitle("/Download/The.Big.Bang.Theory.S06E24.HDTV.x264-LOL.srt");
 
         try {
             // Create a new media player and set the listeners
@@ -77,40 +74,19 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnVideoSizeChangedListener(this);
+
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
         } catch (Exception e) {
             Log.e("", "error: " + e.getMessage(), e);
         }
 
-        try {
-            loadSubtitle();
-        } catch (IOException e) {
-            Toast.makeText(this, "Failed to load subtitle.", Toast.LENGTH_LONG).show();
-        }
-
-        subTitleListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        subtitleView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Caption caption = ((SubTitleTextView) view).getCaption();
                 mMediaPlayer.seekTo(caption.start.mseconds);
             }
         });
-    }
-
-    private void loadSubtitle() throws IOException {
-        FormatSRT formatSRT = new FormatSRT();
-        File dir = Environment.getExternalStorageDirectory();
-
-        TimedTextObject vegas = formatSRT.parseFile("Vegas", new FileInputStream(dir.getPath() + "/Download/The.Big.Bang.Theory.S06E24.HDTV.x264-LOL.srt"));
-        subTitleListView.setAdapter(new SubtitleAdapter(filterByLanguage(vegas.captions, "eng")));
-    }
-
-    private ArrayList<Caption> filterByLanguage(TreeMap<Integer, Caption> captions, String language) {
-        ArrayList<Caption> results = new ArrayList<Caption>();
-        for (Caption caption : captions.values()) {
-            results.add(caption);
-        }
-        return results;
     }
 
     public void onBufferingUpdate(MediaPlayer arg0, int percent) {
@@ -242,78 +218,5 @@ public class MediaPlayerActivity extends Activity implements MediaPlayer.OnBuffe
     @Override
     public boolean canSeekForward() {
         return true;
-    }
-
-    private class SubtitleAdapter implements ListAdapter {
-        private ArrayList<Caption> captions;
-
-        private SubtitleAdapter(ArrayList<Caption> captions) {
-            this.captions = captions;
-        }
-
-        @Override
-        public boolean areAllItemsEnabled() {
-            return true;
-        }
-
-        @Override
-        public boolean isEnabled(int position) {
-            return true;
-        }
-
-        @Override
-        public void registerDataSetObserver(DataSetObserver observer) {
-
-        }
-
-        @Override
-        public void unregisterDataSetObserver(DataSetObserver observer) {
-
-        }
-
-        @Override
-        public int getCount() {
-            return captions.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return captions.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public boolean hasStableIds() {
-            return true;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = new SubTitleTextView(MediaPlayerActivity.this);
-            }
-
-            ((SubTitleTextView) convertView).setCaption(captions.get(position));
-            return convertView;
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            return 0;
-        }
-
-        @Override
-        public int getViewTypeCount() {
-            return 1;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
     }
 }

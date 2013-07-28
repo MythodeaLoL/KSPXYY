@@ -9,7 +9,7 @@
             android:layout_height="wrap_content"
             >
     </SurfaceView>
-    <ListView android:id="@+id/subtitle_list"
+    <com.sth.kspxyy.components.SubtitleView android:id="@+id/subtitle_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginLeft="15dp"/>
